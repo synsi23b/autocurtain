@@ -1,15 +1,17 @@
 from gpiozero.pins.native import NativeFactory
+from gpiozero.pins.mock import MockFactory
 from gpiozero import LED, Device
 from time import sleep
 
+#Device.pin_factory = MockFactory()
 Device.pin_factory = NativeFactory()
 
 class Stepper:
   def __init__(self, in1, in2, in3, in4):
-    l1 = Led(in1)
-    l2 = Led(in2)
-    l3 = Led(in3)
-    l4 = Led(in4)
+    l1 = LED(in1)
+    l2 = LED(in2)
+    l3 = LED(in3)
+    l4 = LED(in4)
     self._pins = [l1, l2, l3, l4]
     # static bool sequence[][4] = {{LOW, LOW, LOW, HIGH },
     #                   {LOW, LOW, HIGH, HIGH},
@@ -42,11 +44,9 @@ class Stepper:
     else:
       sequence = self._steps
     count = int(count)
-    while(count != 0)
-    {
+    while count != 0:
       count -= 1
       for step in sequence:
         sleep(0.001)
         for pin in step:
           pin()
-    }
