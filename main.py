@@ -9,6 +9,8 @@ from threading import Thread
 from signal import pause
 from pathlib import Path
 from datetime import datetime
+import logging
+
 
 
 #Device.pin_factory = MockFactory()
@@ -20,12 +22,15 @@ button = Button(12, hold_time=0.5)
 motor = Stepper(22, 23, 24, 25)
 turns_to_change = 50000
 state_file = Path.home() / "state.txt"
+log_file = Path.home() / "curtain.log"
+
+logging.basicConfig(filename=str(log_file), format='%(asctime)s [%(levelname)s]: %(message)s', level=logging.INFO)
 
 # set running state, machine will do nothing until fixed
 state = "running"
 with open(state_file, "r") as f:
   state = f.read().strip()
-print(f"Startup state is {state}")
+logging.info(f"Startup state is {state}")
 
 
 def set_state(new_state):
@@ -35,18 +40,14 @@ def set_state(new_state):
     f.write(new_state)
 
 
-def logout(text):
-  print(f"{datetime.now()}: {text}")
-
-
 def close_curtain():
   global state
   if state == "open":
     set_state("running")
-    logout("Closing curtain!")
+    logging.info("Closing curtain!")
     led.blink(0.2, 0.8, 20)
     motor.turn(-turns_to_change)
-    logout("Done closing")
+    logging.info("Done closing")
     set_state("closed")
     motor.power_off()
 
@@ -55,19 +56,19 @@ def open_curtain():
   global state
   if state == "closed":
     set_state("running")
-    logout("Opening curtain!")
+    logging.info("Opening curtain!")
     led.blink(0.8, 0.2, 20)
     motor.turn(turns_to_change)
-    logout("Done opening")
+    logging.info("Done opening")
     set_state("open")
     motor.power_off()
 
 
 def on_button():
   global state
-  logout(f"state: {state}")
+  logging.info(f"state: {state}")
   if state == "running":
-    logout("already running, doing nothing")
+    logging.info("already running, doing nothing")
     return
   if state == "open":
     t = Thread(target=close_curtain)
@@ -84,7 +85,7 @@ open_alarm.set_alarm()
 close_alarm.set_alarm()
 button.when_activated = on_button
 
-logout("Main Thread going into pause.")
+logging.info("Main Thread going into pause.")
 pause()
 
 open_alarm.stop()
